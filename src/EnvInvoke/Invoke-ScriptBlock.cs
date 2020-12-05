@@ -14,6 +14,9 @@ namespace EnvInvoke
         [Parameter(ValueFromPipeline = true)]
         public object InputObject { get; set; }
 
+        [Parameter()]
+        public object[] ArgumentList { get; set; }
+
         [Parameter(Mandatory = true)]
         [ValidateNotNull]
         public ScriptBlock ScriptBlock { get; set; }
@@ -30,7 +33,7 @@ namespace EnvInvoke
                 this.InputObject, // dollarUnder
                 new object[] { this.InputObject }, // input
                 AutomationNull.Value, // scriptThis
-                Array.Empty<object>() // args
+                this.ArgumentList ?? Array.Empty<object>() // args
             });
         }
     }

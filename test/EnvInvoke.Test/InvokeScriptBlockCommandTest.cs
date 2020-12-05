@@ -21,7 +21,7 @@ namespace EnvInvoke.Test
         }
 
         [Fact]
-        public void InvokeScripBlockCommand_passes_pipe_to_scriptblock_and_returns_result()
+        public void InvokeScriptBlockCommand_passes_pipe_to_scriptblock_and_returns_result()
         {
             // ARRANGE
 
@@ -40,28 +40,52 @@ namespace EnvInvoke.Test
             Assert.Equal(new[] { 3, 3 }, result.Select(pso => (int)pso.BaseObject));
         }
 
-        //[Fact]
-        //public void InvokeScripBlockCommand_passes_pipe_as_args0_and_returns_result()
-        //{
-        //    // ARRANGE
+        [Fact]
+        public void InvokeScriptBlockCommand_passes_pipe_to_scriptblock_and_sets_variable_in_current_session_and_returns_result()
+        {
+            // ARRANGE
 
-        //    var scriptBlock = ScriptBlock.Create("param($i) $i");
+            var scriptBlock = ScriptBlock.Create("$_.Length; $len = $_.Length");
 
-        //    // ACT
+            // ACT
 
-        //    var result = this.PowerShell
-        //        .AddCommand("Invoke-ScriptBlock").AddParameter("ScriptBlock", scriptBlock)
-        //        .Invoke(new[] { "one", "two" })
-        //        .ToArray();
+            var result = this.PowerShell
+                .AddCommand("Invoke-ScriptBlock").AddParameter("ScriptBlock", scriptBlock)
+                .AddStatement()
+                .AddScript("$len")
+                .Invoke(new[] { "one", "two" })
+                .ToArray();
 
-        //    // ASSERT
+            // ASSERT
 
-        //    Assert.False(this.PowerShell.HadErrors);
-        //    Assert.Equal(new[] { 3, 3 }, result.Select(pso => (int)pso.BaseObject));
-        //}
+            Assert.False(this.PowerShell.HadErrors);
+            Assert.Equal(new[] { 3, 3, 3 }, result.Select(pso => (int)pso.BaseObject));
+        }
 
         [Fact]
-        public void InvokeScripBlockCommand_passes_pipe_to_scriptblock_and_returns_multiple_results()
+        public void InvokeScriptBlockCommand_passes_pipe_and_arguments_and_returns_results()
+        {
+            // ARRANGE
+
+            var scriptBlock = ScriptBlock.Create("param($p, $s) $p+$_+$s");
+
+            // ACT
+
+            var result = this.PowerShell
+                .AddCommand("Invoke-ScriptBlock")
+                    .AddParameter("ScriptBlock", scriptBlock)
+                    .AddParameter("ArgumentList", new[] { "prefix-", "-suffix" })
+                .Invoke(new[] { "one", "two" })
+                .ToArray();
+
+            // ASSERT
+
+            Assert.False(this.PowerShell.HadErrors);
+            Assert.Equal(new[] { "prefix-one-suffix", "prefix-two-suffix" }, result.Select(pso => (string)pso.BaseObject));
+        }
+
+        [Fact]
+        public void InvokeScriptBlockCommand_passes_pipe_to_scriptblock_and_returns_multiple_results()
         {
             // ARRANGE
 
@@ -78,25 +102,6 @@ namespace EnvInvoke.Test
 
             Assert.False(this.PowerShell.HadErrors);
             Assert.Equal(new object[] { 3, "one", 3, "two" }, result.Select(pso => pso.BaseObject));
-        }
-
-        [Fact]
-        public void InvokeScripBlockCommand_catches_error()
-        {
-            // ARRANGE
-
-            var scriptBlock = ScriptBlock.Create("throw \"fail:$_\"");
-
-            // ACT
-
-            var result = Assert.Throws<CmdletInvocationException>(() => this.PowerShell
-                .AddCommand("Invoke-ScriptBlock").AddParameter("ScriptBlock", scriptBlock)
-                .Invoke(new[] { "one" })
-                .ToArray());
-
-            // ASSERT
-
-            Assert.True(this.PowerShell.HadErrors);
         }
     }
 }
