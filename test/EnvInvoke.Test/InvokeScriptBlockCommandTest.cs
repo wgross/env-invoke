@@ -30,7 +30,7 @@ namespace EnvInvoke.Test
             // ACT
 
             var result = this.PowerShell
-                .AddCommand("Invoke-ScriptBlock").AddParameter("Process", scriptBlock)
+                .AddCommand("Invoke-ScriptBlock").AddParameter("ScriptBlock", scriptBlock)
                 .Invoke(new[] { "one", "two" })
                 .ToArray();
 
@@ -50,7 +50,7 @@ namespace EnvInvoke.Test
             // ACT
 
             var result = this.PowerShell
-                .AddCommand("Invoke-ScriptBlock").AddParameter("Process", scriptBlock)
+                .AddCommand("Invoke-ScriptBlock").AddParameter("ScriptBlock", scriptBlock)
                 .Invoke(new[] { "one", "two" })
                 .ToArray();
 
@@ -70,7 +70,7 @@ namespace EnvInvoke.Test
             // ACT
 
             var result = this.PowerShell
-                .AddCommand("Invoke-ScriptBlock").AddParameter("Process", scriptBlock)
+                .AddCommand("Invoke-ScriptBlock").AddParameter("ScriptBlock", scriptBlock)
                 .Invoke(new[] { "one", "two" })
                 .ToArray();
 
