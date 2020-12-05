@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Management.Automation;
+using System.Management.Automation.Internal;
 using System.Reflection;
 
 namespace EnvInvoke
@@ -15,33 +16,22 @@ namespace EnvInvoke
 
         [Parameter(Mandatory = true)]
         [ValidateNotNull]
-        public ScriptBlock Process { get; set; }
+        public ScriptBlock ScriptBlock { get; set; }
 
-        protected override void BeginProcessing()
-        {
-            this.scriptsSessionState = (SessionState)typeof(ScriptBlock)
-                .GetProperty("SessionState", System.Reflection.BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(this.Process, null);
-            this.oldDollarUnder = this.scriptsSessionState.PSVariable.GetValue("_");
-        }
+        private static readonly MethodInfo InvokeUsingCmdletMethod = typeof(ScriptBlock).GetMethod("InvokeUsingCmdlet", BindingFlags.NonPublic | BindingFlags.Instance);
 
         protected override void ProcessRecord()
         {
-            this.scriptsSessionState.PSVariable.Set("_", this.InputObject);
-            try
+            InvokeUsingCmdletMethod.Invoke(this.ScriptBlock, new object[]
             {
-                foreach (var result in this.SessionState.InvokeCommand.InvokeScript(this.scriptsSessionState, this.Process, new object[0]))
-                    this.WriteObject(result);
-            }
-            catch (Exception ex)
-            {
-                this.WriteError(new ErrorRecord(ex, "ScriptBlock.Exception", ErrorCategory.OperationStopped, this.InputObject));
-            }
-        }
-
-        protected override void EndProcessing()
-        {
-            this.scriptsSessionState.PSVariable.Set("_", this.oldDollarUnder);
+                this, // contextCmdlet
+                false, // useLocalScope
+                1, // ErrorHandlingBehavior.WriteToCurrentErrorPipe = 1,
+                this.InputObject, // dollarUnder
+                new object[] { this.InputObject }, // input
+                AutomationNull.Value, // scriptThis
+                Array.Empty<object>() // args
+            });
         }
     }
 }

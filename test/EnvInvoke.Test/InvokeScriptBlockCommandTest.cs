@@ -40,6 +40,26 @@ namespace EnvInvoke.Test
             Assert.Equal(new[] { 3, 3 }, result.Select(pso => (int)pso.BaseObject));
         }
 
+        //[Fact]
+        //public void InvokeScripBlockCommand_passes_pipe_as_args0_and_returns_result()
+        //{
+        //    // ARRANGE
+
+        //    var scriptBlock = ScriptBlock.Create("param($i) $i");
+
+        //    // ACT
+
+        //    var result = this.PowerShell
+        //        .AddCommand("Invoke-ScriptBlock").AddParameter("ScriptBlock", scriptBlock)
+        //        .Invoke(new[] { "one", "two" })
+        //        .ToArray();
+
+        //    // ASSERT
+
+        //    Assert.False(this.PowerShell.HadErrors);
+        //    Assert.Equal(new[] { 3, 3 }, result.Select(pso => (int)pso.BaseObject));
+        //}
+
         [Fact]
         public void InvokeScripBlockCommand_passes_pipe_to_scriptblock_and_returns_multiple_results()
         {
@@ -69,18 +89,14 @@ namespace EnvInvoke.Test
 
             // ACT
 
-            var result = this.PowerShell
+            var result = Assert.Throws<CmdletInvocationException>(() => this.PowerShell
                 .AddCommand("Invoke-ScriptBlock").AddParameter("ScriptBlock", scriptBlock)
-                .Invoke(new[] { "one", "two" })
-                .ToArray();
+                .Invoke(new[] { "one" })
+                .ToArray());
 
             // ASSERT
 
             Assert.True(this.PowerShell.HadErrors);
-            Assert.Equal(2, this.PowerShell.Streams.Error.Count);
-            Assert.Equal("fail:one", this.PowerShell.Streams.Error.First().Exception.Message);
-            Assert.Equal("fail:two", this.PowerShell.Streams.Error.Last().Exception.Message);
-            Assert.Empty(result);
         }
     }
 }
